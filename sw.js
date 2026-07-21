@@ -1,4 +1,39 @@
-const CACHE='szz-fleet-v1.3-2-1';const FILES=['./','./index.html','./styles.css','./app.js','./logo.svg','./manifest.webmanifest'];
-self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES))));
-self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));
-self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
+const CACHE = "szz-fleet-v2.2";
+const FILES = [
+  "./styles.css?v=2.2",
+  "./app.js?v=2.2",
+  "./SZZ_logo.png",
+  "./manifest.webmanifest"
+];
+
+self.addEventListener("install", event => {
+  self.skipWaiting();
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES)));
+});
+
+self.addEventListener("activate", event => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)));
+    await self.clients.claim();
+  })());
+});
+
+self.addEventListener("fetch", event => {
+  const request = event.request;
+  if (request.mode === "navigate") {
+    event.respondWith(fetch(request).catch(() => caches.match("./index.html")));
+    return;
+  }
+  event.respondWith((async () => {
+    const cached = await caches.match(request);
+    const network = fetch(request).then(response => {
+      if (response && response.ok && request.method === "GET") {
+        const copy = response.clone();
+        caches.open(CACHE).then(cache => cache.put(request, copy));
+      }
+      return response;
+    }).catch(() => cached);
+    return cached || network;
+  })());
+});

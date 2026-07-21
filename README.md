@@ -1,13 +1,9 @@
-# SZZ Vozový park 2.1
+# SZZ Vozový park 2.2
 
-Novinky:
-- samostatná registrace uživatelů,
-- jméno a příjmení v registraci,
-- potvrzení e-mailové adresy,
-- přístup až po schválení správcem,
-- seznam čekajících registrací ve Správě.
+Opravené načítání nové verze na GitHub Pages:
+- registrace uživatelů
+- potvrzení e-mailu
+- schválení správcem
+- aktualizovaný service worker bez držení staré přihlašovací obrazovky
 
-## Důležité nasazení
-Nahrajte všechny soubory na GitHub Pages a znovu publikujte `firestore.rules` a `storage.rules` ve Firebase.
-
-První existující účet, který se po nasazení přihlásí, se automaticky nastaví jako správce. Proto se jako první přihlaste svým správcovským účtem.
+Nahrajte všechny soubory do kořene repozitáře a nahraďte původní soubory.

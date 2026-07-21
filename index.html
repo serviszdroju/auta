@@ -8,7 +8,7 @@
   <title>SZZ | Vozový park</title>
   <link rel="icon" href="SZZ_logo.png" type="image/png" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=2.2" />
 </head>
 <body>
   <section id="loginScreen" class="login-screen">
@@ -33,7 +33,7 @@
         <div class="field"><label>Potvrzení hesla</label><input id="registerPassword2" type="password" required minlength="6" autocomplete="new-password"></div>
         <button class="primary" type="submit">Odeslat registraci</button>
       </form>
-      <small>Po registraci potvrďte e-mail. Přístup do aplikace následně povolí správce.</small><p id="loginError" class="login-error"></p>
+      <small>Po registraci potvrďte e-mail. Přístup do aplikace následně povolí správce.</small><div class="version-badge">Verze 2.2</div><p id="loginError" class="login-error"></p>
     </div>
   </section>
   <header class="app-header">
@@ -126,6 +126,6 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script type="module" src="app.js"></script>
+  <script type="module" src="app.js?v=2.2"></script>
 </body>
 </html>
