@@ -69,7 +69,7 @@
         <article class="card admin-card"><h2>Záloha dat</h2><p>Stáhne všechna vozidla, rezervace, závady a historii do jednoho souboru.</p><button id="exportBtn" class="secondary">Stáhnout zálohu</button></article>
         <article class="card admin-card"><h2>Obnova dat</h2><p>Načte dříve staženou zálohu. Stávající data budou nahrazena.</p><label class="file-button">Načíst zálohu<input id="importInput" type="file" accept="application/json" /></label></article>
         <article class="card admin-card"><h2>Ukázková data</h2><p>Vrátí aplikaci do výchozího stavu s několika ukázkovými vozidly.</p><button id="resetBtn" class="danger-outline">Obnovit ukázková data</button></article>
-        <article class="card admin-card"><h2>O systému</h2><p><strong>SZZ Vozový park</strong><br />Jednoduchá evidence firemních vozidel.</p><small>Verze 1.1 – data jsou uložena v tomto prohlížeči.</small></article>
+        <article class="card admin-card"><h2>O systému</h2><p><strong>SZZ Vozový park</strong><br />Jednoduchá evidence firemních vozidel.</p><small>Verze 1.2 – QR kódy vozidel a načtení tachometru z fotografie.</small></article>
       </div>
     </section>
   </main>
@@ -83,6 +83,8 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
