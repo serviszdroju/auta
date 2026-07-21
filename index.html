@@ -11,16 +11,32 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <section id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <img src="SZZ_logo.png" alt="SZZ">
+      <p class="eyebrow">Firemní systém</p>
+      <h1>Přihlášení do vozového parku</h1>
+      <p class="muted">Přihlaste se firemním e-mailem a heslem.</p>
+      <form id="loginForm">
+        <div class="field"><label>Firemní e-mail</label><input id="loginEmail" type="email" required autocomplete="email"></div>
+        <div class="field"><label>Heslo</label><input id="loginPassword" type="password" required autocomplete="current-password"></div>
+        <button class="primary" type="submit">Přihlásit se</button>
+      </form>
+      <small>Účty vytváří správce ve Firebase Authentication. Data jsou společná pro všechny přihlášené uživatele.</small><p id="loginError" class="login-error"></p>
+    </div>
+  </section>
   <header class="app-header">
     <a class="brand" href="#prehled" aria-label="SZZ Vozový park">
       <img src="SZZ_logo.png" alt="Logo Servis záložních zdrojů" />
       <div><strong>Servis záložních zdrojů</strong><span>Vozový park</span></div>
     </a>
-    <button id="mobileMenuBtn" class="icon-button mobile-only" aria-label="Otevřít menu">☰</button>
+    <div id="userBox" class="user-box"><span id="userName"></span><button id="logoutBtn" class="secondary">Odhlásit</button></div><button id="mobileMenuBtn" class="icon-button mobile-only" aria-label="Otevřít menu">☰</button>
     <nav id="mainNav" class="main-nav" aria-label="Hlavní navigace">
       <a href="#prehled" data-view="dashboard" class="active">Přehled</a>
+      <a href="#vozidla" data-view="vehicles">Vozidla</a>
       <a href="#rezervace" data-view="reservations">Rezervace</a>
       <a href="#zavady" data-view="issues">Závady</a>
+      <a href="#historie" data-view="history">Historie</a>
       <a href="#sprava" data-view="admin">Správa</a>
     </nav>
   </header>
@@ -53,6 +69,13 @@
       <section id="vehicleList" class="vehicle-grid"></section>
     </section>
 
+
+    <section id="vehiclesView" class="view">
+      <div class="page-title"><div><p class="eyebrow">Evidence</p><h1>Všechna vozidla</h1></div><button class="primary" data-open="vehicle">+ Přidat vozidlo</button></div>
+      <section class="toolbar card"><label class="search" style="width:100%"><span>⌕</span><input id="vehicleSearchAll" placeholder="Hledat SPZ, VIN, model nebo řidiče" /></label></section>
+      <section id="vehicleListAll" class="vehicle-grid"></section>
+    </section>
+
     <section id="reservationsView" class="view">
       <div class="page-title"><div><p class="eyebrow">Plánování</p><h1>Rezervace vozidel</h1></div><button class="primary" data-open="reservation">+ Nová rezervace</button></div>
       <div id="reservationList" class="list-stack"></div>
@@ -63,13 +86,19 @@
       <div id="issueList" class="list-stack"></div>
     </section>
 
+
+    <section id="historyView" class="view">
+      <div class="page-title"><div><p class="eyebrow">Pohyby vozidel</p><h1>Historie převzetí a vrácení</h1></div></div>
+      <div id="historyList" class="list-stack"></div>
+    </section>
+
     <section id="adminView" class="view">
       <div class="page-title"><div><p class="eyebrow">Nastavení</p><h1>Správa systému</h1></div></div>
       <div class="admin-grid">
         <article class="card admin-card"><h2>Záloha dat</h2><p>Stáhne všechna vozidla, rezervace, závady a historii do jednoho souboru.</p><button id="exportBtn" class="secondary">Stáhnout zálohu</button></article>
         <article class="card admin-card"><h2>Obnova dat</h2><p>Načte dříve staženou zálohu. Stávající data budou nahrazena.</p><label class="file-button">Načíst zálohu<input id="importInput" type="file" accept="application/json" /></label></article>
         <article class="card admin-card"><h2>Ukázková data</h2><p>Vrátí aplikaci do výchozího stavu s několika ukázkovými vozidly.</p><button id="resetBtn" class="danger-outline">Obnovit ukázková data</button></article>
-        <article class="card admin-card"><h2>O systému</h2><p><strong>SZZ Vozový park</strong><br />Jednoduchá evidence firemních vozidel.</p><small>Verze 1.2 – QR kódy vozidel a načtení tachometru z fotografie.</small></article>
+        <article class="card admin-card"><h2>O systému</h2><p><strong>SZZ Vozový park</strong><br />Jednoduchá evidence firemních vozidel.</p><small>Verze 2.0 – Firebase, PWA, dokumenty, QR, OCR a historie vozidel.</small></article>
       </div>
     </section>
   </main>
@@ -85,6 +114,6 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
