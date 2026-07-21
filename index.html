@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b3558" />
+  <meta name="description" content="SZZ Vozový park – přehled firemních vozidel, rezervací, termínů a závad." />
+  <title>SZZ | Vozový park</title>
+  <link rel="icon" href="logo.svg" type="image/svg+xml" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <a class="brand" href="#prehled" aria-label="SZZ Vozový park">
+      <img src="logo.svg" alt="Logo SZZ" />
+      <div><strong>SZZ</strong><span>Vozový park</span></div>
+    </a>
+    <button id="mobileMenuBtn" class="icon-button mobile-only" aria-label="Otevřít menu">☰</button>
+    <nav id="mainNav" class="main-nav" aria-label="Hlavní navigace">
+      <a href="#prehled" data-view="dashboard" class="active">Přehled</a>
+      <a href="#rezervace" data-view="reservations">Rezervace</a>
+      <a href="#zavady" data-view="issues">Závady</a>
+      <a href="#sprava" data-view="admin">Správa</a>
+    </nav>
+  </header>
+
+  <main class="app-shell">
+    <section id="dashboardView" class="view active">
+      <div class="hero-row">
+        <div>
+          <p class="eyebrow">Firemní vozidla</p>
+          <h1>Co je dnes potřeba vědět</h1>
+          <p class="muted" id="todayText"></p>
+        </div>
+        <button class="primary" data-open="vehicle">+ Přidat vozidlo</button>
+      </div>
+
+      <section id="stats" class="stats-grid" aria-label="Souhrn vozidel"></section>
+
+      <section class="toolbar card">
+        <div class="segmented" id="vehicleFilters">
+          <button data-filter="all" class="active">Všechna</button>
+          <button data-filter="free">Volná</button>
+          <button data-filter="used">Používaná</button>
+          <button data-filter="reserved">Rezervovaná</button>
+          <button data-filter="service">Mimo provoz</button>
+        </div>
+        <label class="search"><span>⌕</span><input id="vehicleSearch" placeholder="Hledat SPZ, model nebo řidiče" /></label>
+      </section>
+
+      <section id="alertsPanel" class="alerts-panel"></section>
+      <section id="vehicleList" class="vehicle-grid"></section>
+    </section>
+
+    <section id="reservationsView" class="view">
+      <div class="page-title"><div><p class="eyebrow">Plánování</p><h1>Rezervace vozidel</h1></div><button class="primary" data-open="reservation">+ Nová rezervace</button></div>
+      <div id="reservationList" class="list-stack"></div>
+    </section>
+
+    <section id="issuesView" class="view">
+      <div class="page-title"><div><p class="eyebrow">Technický stav</p><h1>Závady a opravy</h1></div><button class="primary" data-open="issue">+ Nahlásit závadu</button></div>
+      <div id="issueList" class="list-stack"></div>
+    </section>
+
+    <section id="adminView" class="view">
+      <div class="page-title"><div><p class="eyebrow">Nastavení</p><h1>Správa systému</h1></div></div>
+      <div class="admin-grid">
+        <article class="card admin-card"><h2>Záloha dat</h2><p>Stáhne všechna vozidla, rezervace, závady a historii do jednoho souboru.</p><button id="exportBtn" class="secondary">Stáhnout zálohu</button></article>
+        <article class="card admin-card"><h2>Obnova dat</h2><p>Načte dříve staženou zálohu. Stávající data budou nahrazena.</p><label class="file-button">Načíst zálohu<input id="importInput" type="file" accept="application/json" /></label></article>
+        <article class="card admin-card"><h2>Ukázková data</h2><p>Vrátí aplikaci do výchozího stavu s několika ukázkovými vozidly.</p><button id="resetBtn" class="danger-outline">Obnovit ukázková data</button></article>
+        <article class="card admin-card"><h2>O systému</h2><p><strong>SZZ Vozový park</strong><br />Jednoduchá evidence firemních vozidel.</p><small>Verze 1.0 – data jsou uložena v tomto prohlížeči.</small></article>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="modal">
+    <form id="modalForm" class="modal-card">
+      <header><div><p class="eyebrow" id="modalEyebrow"></p><h2 id="modalTitle"></h2></div><button type="button" class="icon-button" data-close aria-label="Zavřít">×</button></header>
+      <div id="modalBody" class="modal-body"></div>
+      <footer><button type="button" class="secondary" data-close>Zrušit</button><button type="submit" class="primary" id="modalSubmit">Uložit</button></footer>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
