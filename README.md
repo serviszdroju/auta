@@ -1,15 +1,13 @@
-# SZZ Vozový park 2.0
+# SZZ Vozový park 2.1
 
-Firemní aplikace pro evidenci vozidel napojená na Firebase.
+Novinky:
+- samostatná registrace uživatelů,
+- jméno a příjmení v registraci,
+- potvrzení e-mailové adresy,
+- přístup až po schválení správcem,
+- seznam čekajících registrací ve Správě.
 
-## Novinky ve verzi 2.0
-- samostatná stránka Vozidla
-- historie převzetí a vrácení
-- rozšířené údaje VIN, rok výroby a palivo
-- přihlášení Firebase Authentication
-- společná data Firestore
-- dokumenty ve Firebase Storage
-- QR kódy a OCR tachometru
-- PWA instalace do telefonu
+## Důležité nasazení
+Nahrajte všechny soubory na GitHub Pages a znovu publikujte `firestore.rules` a `storage.rules` ve Firebase.
 
-Nahrajte všechny soubory do kořene GitHub repozitáře.
+První existující účet, který se po nasazení přihlásí, se automaticky nastaví jako správce. Proto se jako první přihlaste svým správcovským účtem.

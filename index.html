@@ -17,12 +17,23 @@
       <p class="eyebrow">Firemní systém</p>
       <h1>Přihlášení do vozového parku</h1>
       <p class="muted">Přihlaste se firemním e-mailem a heslem.</p>
-      <form id="loginForm">
+      <div class="auth-tabs" role="tablist">
+        <button type="button" class="active" data-auth-tab="login">Přihlášení</button>
+        <button type="button" data-auth-tab="register">Registrace</button>
+      </div>
+      <form id="loginForm" class="auth-form">
         <div class="field"><label>Firemní e-mail</label><input id="loginEmail" type="email" required autocomplete="email"></div>
         <div class="field"><label>Heslo</label><input id="loginPassword" type="password" required autocomplete="current-password"></div>
         <button class="primary" type="submit">Přihlásit se</button>
       </form>
-      <small>Účty vytváří správce ve Firebase Authentication. Data jsou společná pro všechny přihlášené uživatele.</small><p id="loginError" class="login-error"></p>
+      <form id="registerForm" class="auth-form hidden">
+        <div class="field"><label>Jméno a příjmení</label><input id="registerName" type="text" required minlength="3" autocomplete="name"></div>
+        <div class="field"><label>Firemní e-mail</label><input id="registerEmail" type="email" required autocomplete="email"></div>
+        <div class="field"><label>Heslo</label><input id="registerPassword" type="password" required minlength="6" autocomplete="new-password"></div>
+        <div class="field"><label>Potvrzení hesla</label><input id="registerPassword2" type="password" required minlength="6" autocomplete="new-password"></div>
+        <button class="primary" type="submit">Odeslat registraci</button>
+      </form>
+      <small>Po registraci potvrďte e-mail. Přístup do aplikace následně povolí správce.</small><p id="loginError" class="login-error"></p>
     </div>
   </section>
   <header class="app-header">
@@ -37,7 +48,7 @@
       <a href="#rezervace" data-view="reservations">Rezervace</a>
       <a href="#zavady" data-view="issues">Závady</a>
       <a href="#historie" data-view="history">Historie</a>
-      <a href="#sprava" data-view="admin">Správa</a>
+      <a href="#sprava" data-view="admin" id="adminNavLink" class="admin-only">Správa</a>
     </nav>
   </header>
 
@@ -98,7 +109,8 @@
         <article class="card admin-card"><h2>Záloha dat</h2><p>Stáhne všechna vozidla, rezervace, závady a historii do jednoho souboru.</p><button id="exportBtn" class="secondary">Stáhnout zálohu</button></article>
         <article class="card admin-card"><h2>Obnova dat</h2><p>Načte dříve staženou zálohu. Stávající data budou nahrazena.</p><label class="file-button">Načíst zálohu<input id="importInput" type="file" accept="application/json" /></label></article>
         <article class="card admin-card"><h2>Ukázková data</h2><p>Vrátí aplikaci do výchozího stavu s několika ukázkovými vozidly.</p><button id="resetBtn" class="danger-outline">Obnovit ukázková data</button></article>
-        <article class="card admin-card"><h2>O systému</h2><p><strong>SZZ Vozový park</strong><br />Jednoduchá evidence firemních vozidel.</p><small>Verze 2.0 – Firebase, PWA, dokumenty, QR, OCR a historie vozidel.</small></article>
+        <article class="card admin-card admin-users-card"><h2>Čekající registrace</h2><p>Uživatel se může přihlásit až po potvrzení e-mailu a vašem schválení.</p><div id="pendingUsers" class="pending-users"><div class="muted">Načítám registrace…</div></div></article>
+        <article class="card admin-card"><h2>O systému</h2><p><strong>SZZ Vozový park</strong><br />Jednoduchá evidence firemních vozidel.</p><small>Verze 2.1 – registrace, potvrzení e-mailu a schvalování správcem.</small></article>
       </div>
     </section>
   </main>

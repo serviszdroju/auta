@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, sendEmailVerification, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
 
 const firebaseConfig={apiKey:"AIzaSyDLp49Ln3VX_IE2SlVjwfAexgHb2H6JZV4",authDomain:"szz-auta.firebaseapp.com",projectId:"szz-auta",storageBucket:"szz-auta.firebasestorage.app",messagingSenderId:"533024293369",appId:"1:533024293369:web:17bc6285fc6c850132bd28",measurementId:"G-X0X2GSJ9E6"};
@@ -8,6 +8,7 @@ const firebaseApp=initializeApp(firebaseConfig);
 const auth=getAuth(firebaseApp),db=getFirestore(firebaseApp),storage=getStorage(firebaseApp);
 const stateRef=doc(db,"app","state");
 let unsubscribeState=null;
+let currentProfile=null;
 const KEY='szz-fleet-v1';
 const APP_BASE=location.origin+location.pathname.replace(/[^/]*$/,'');
 const $=(s,r=document)=>r.querySelector(s); const $$=(s,r=document)=>[...r.querySelectorAll(s)];
@@ -28,7 +29,7 @@ function vehicle(id){return data.vehicles.find(v=>v.id===id)}
 function daysTo(v){if(!v)return 9999;return Math.ceil((new Date(v+'T12:00:00')-new Date())/86400000)}
 function statusLabel(s){return({free:'Volné',used:'Právě používáno',reserved:'Rezervované',service:'Mimo provoz'})[s]||s}
 function showToast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
-function renderAll(){renderStats();renderAlerts();renderVehicles();renderVehiclesAll();renderReservations();renderIssues();renderHistory()}
+function renderAll(){renderStats();renderAlerts();renderVehicles();renderVehiclesAll();renderReservations();renderIssues();renderHistory();if(currentProfile?.role==='admin')renderPendingUsers()}
 function renderStats(){const counts={all:data.vehicles.length,free:0,used:0,reserved:0,service:0};data.vehicles.forEach(v=>counts[v.status]++);$('#stats').innerHTML=[['all','Celkem vozidel'],['free','Volná'],['used','Používaná'],['service','Mimo provoz']].map(([k,l])=>`<article class="stat"><strong>${counts[k]||0}</strong><span>${l}</span></article>`).join('')}
 function renderAlerts(){const alerts=[];data.vehicles.forEach(v=>{const s=daysTo(v.stk),srv=daysTo(v.serviceDate);if(s<0)alerts.push(`${v.plate}: STK je po termínu`);else if(s<=30)alerts.push(`${v.plate}: STK za ${s} dní`);const cz=daysTo(v.czTollTo),sk=daysTo(v.skTollTo),ins=daysTo(v.insuranceTo);if(v.czTollTo&&cz<=30)alerts.push(`${v.plate}: česká známka ${cz<0?'je po termínu':`končí za ${cz} dní`}`);if(v.skTollTo&&sk<=30)alerts.push(`${v.plate}: slovenská známka ${sk<0?'je po termínu':`končí za ${sk} dní`}`);if(v.insuranceTo&&ins<=30)alerts.push(`${v.plate}: pojištění ${ins<0?'je po termínu':`končí za ${ins} dní`}`);if(srv<0)alerts.push(`${v.plate}: servis je po termínu`);else if(srv<=14)alerts.push(`${v.plate}: servis za ${srv} dní`)});$('#alertsPanel').innerHTML=alerts.length?`<strong>Upozornění:</strong> ${alerts.map(escapeHtml).join(' · ')}`:''}
 function renderVehicles(){const q=$('#vehicleSearch').value.trim().toLowerCase();const items=data.vehicles.filter(v=>(filter==='all'||v.status===filter)&&[v.plate,v.name,v.driver].join(' ').toLowerCase().includes(q));$('#vehicleList').innerHTML=items.length?items.map(v=>{const main=v.status==='free'?`<button class="main-action" onclick="openTake('${v.id}')">Převzít</button>`:v.status==='used'?`<button class="main-action" onclick="openReturn('${v.id}')">Vrátit</button>`:`<button class="main-action" onclick="openReservation('${v.id}')">Rezervovat</button>`;return `<article class="vehicle-card"><div class="vehicle-top"><span class="status-dot status-${v.status}"></span><div class="vehicle-title"><h3>${escapeHtml(v.name)}</h3><div class="plate">${escapeHtml(v.plate)}</div></div><span class="badge">${escapeHtml(v.type)}</span></div><div class="vehicle-state"><strong>${statusLabel(v.status)}</strong><span class="muted">${v.driver?escapeHtml(v.driver):escapeHtml(v.note||'Vozidlo je k dispozici')}</span></div><div class="info-grid"><div>Stav km<strong>${Number(v.mileage).toLocaleString('cs-CZ')} km</strong></div><div>STK do<strong>${fmtDate(v.stk)}</strong></div><div>ČR známka<strong>${v.czTollTo?fmtDate(v.czTollTo):'Není evidována'}</strong></div><div>Pojištění do<strong>${fmtDate(v.insuranceTo)}</strong></div><div>Vrácení<strong>${v.returnAt?fmtDateTime(v.returnAt):'—'}</strong></div></div><div class="card-actions">${main}<button onclick="openVehicle('${v.id}')">Detail</button><button class="qr-button" onclick="openQr('${v.id}')">QR kód vozidla</button></div></article>`}).join(''):`<div class="empty">Žádné vozidlo neodpovídá zvolenému filtru.</div>`}
@@ -73,11 +74,86 @@ $('#exportBtn').onclick=()=>{const a=document.createElement('a');a.href=URL.crea
 $('#importInput').onchange=async e=>{try{const parsed=JSON.parse(await e.target.files[0].text());if(!parsed.vehicles)throw new Error();data=parsed;await save();showToast('Záloha byla načtena.')}catch{showToast('Soubor není platná záloha.')}e.target.value=''};
 $('#resetBtn').onclick=()=>{if(confirm('Opravdu obnovit ukázková data?')){data=structuredClone(seed);save().then(()=>showToast('Ukázková data byla obnovena.')).catch(e=>showToast(e.message))}};
 
-function firebaseErrorMessage(code){return ({'auth/invalid-credential':'Nesprávný e-mail nebo heslo.','auth/too-many-requests':'Příliš mnoho pokusů. Zkuste to později.','auth/user-disabled':'Tento účet je zakázaný.','auth/network-request-failed':'Nepodařilo se připojit k internetu.'})[code]||'Přihlášení se nepodařilo.'}
-$('#loginForm').addEventListener('submit',async e=>{e.preventDefault();const error=$('#loginError');error.textContent='';try{await signInWithEmailAndPassword(auth,$('#loginEmail').value.trim(),$('#loginPassword').value)}catch(err){error.textContent=firebaseErrorMessage(err.code)}});
+function firebaseErrorMessage(code){return ({
+  'auth/invalid-credential':'Nesprávný e-mail nebo heslo.',
+  'auth/email-already-in-use':'Tento e-mail je už zaregistrovaný.',
+  'auth/weak-password':'Heslo musí mít alespoň 6 znaků.',
+  'auth/invalid-email':'Zadejte platný e-mail.',
+  'auth/too-many-requests':'Příliš mnoho pokusů. Zkuste to později.',
+  'auth/user-disabled':'Tento účet je zakázaný.',
+  'auth/network-request-failed':'Nepodařilo se připojit k internetu.'
+})[code]||'Operace se nepodařila.'}
+function setAuthMessage(message,ok=false){const el=$('#loginError');el.textContent=message;el.classList.toggle('success',ok)}
+$$('[data-auth-tab]').forEach(btn=>btn.addEventListener('click',()=>{
+  $$('[data-auth-tab]').forEach(x=>x.classList.toggle('active',x===btn));
+  $('#loginForm').classList.toggle('hidden',btn.dataset.authTab!=='login');
+  $('#registerForm').classList.toggle('hidden',btn.dataset.authTab!=='register');
+  setAuthMessage('');
+}));
+$('#loginForm').addEventListener('submit',async e=>{e.preventDefault();setAuthMessage('');try{await signInWithEmailAndPassword(auth,$('#loginEmail').value.trim(),$('#loginPassword').value)}catch(err){setAuthMessage(firebaseErrorMessage(err.code))}});
+$('#registerForm').addEventListener('submit',async e=>{
+  e.preventDefault();setAuthMessage('');
+  const name=$('#registerName').value.trim(),email=$('#registerEmail').value.trim().toLowerCase(),password=$('#registerPassword').value;
+  if(password!==$('#registerPassword2').value){setAuthMessage('Hesla se neshodují.');return}
+  try{
+    const cred=await createUserWithEmailAndPassword(auth,email,password);
+    await updateProfile(cred.user,{displayName:name});
+    await setDoc(doc(db,'users',cred.user.uid),{name,email,approved:false,role:'pending',createdAt:serverTimestamp()});
+    await sendEmailVerification(cred.user);
+    await signOut(auth);
+    $('#registerForm').reset();
+    $('[data-auth-tab="login"]').click();
+    setAuthMessage('Registrace byla odeslána. Potvrďte e-mail a vyčkejte na schválení správcem.',true);
+  }catch(err){setAuthMessage(firebaseErrorMessage(err.code))}
+});
 $('#logoutBtn').onclick=()=>signOut(auth);
-async function startCloud(){if(unsubscribeState)unsubscribeState();const snap=await getDoc(stateRef);if(!snap.exists())await setDoc(stateRef,{vehicles:seed.vehicles,reservations:[],issues:[],history:[],updatedAt:serverTimestamp(),updatedBy:auth.currentUser.email});unsubscribeState=onSnapshot(stateRef,s=>{if(!s.exists())return;const x=s.data();data={vehicles:x.vehicles||[],reservations:x.reservations||[],issues:x.issues||[],history:x.history||[]};cloudReady=true;renderAll();openVehicleFromQr() },()=>showToast('Nepodařilo se načíst společná data.'))}
-onAuthStateChanged(auth,user=>{$('#loginScreen').classList.toggle('hidden',!!user);if(user){$('#userName').textContent=user.displayName||user.email;startCloud().catch(e=>showToast(e.message))}else{cloudReady=false;if(unsubscribeState){unsubscribeState();unsubscribeState=null}}});
+async function ensureProfile(user){
+  const userRef=doc(db,'users',user.uid),adminRef=doc(db,'config','admin');
+  let profileSnap=await getDoc(userRef);
+  const adminSnap=await getDoc(adminRef);
+  if(!adminSnap.exists()){
+    await setDoc(adminRef,{uid:user.uid,email:user.email,createdAt:serverTimestamp()});
+    await setDoc(userRef,{name:user.displayName||user.email,email:user.email,approved:true,role:'admin',createdAt:serverTimestamp()},{merge:true});
+    profileSnap=await getDoc(userRef);
+  }else if(!profileSnap.exists()){
+    await setDoc(userRef,{name:user.displayName||user.email,email:user.email,approved:false,role:'pending',createdAt:serverTimestamp()});
+    profileSnap=await getDoc(userRef);
+  }
+  return profileSnap.data();
+}
+function applyRoleUi(){
+  const admin=currentProfile?.role==='admin'&&currentProfile?.approved;
+  $$('.admin-only').forEach(el=>el.classList.toggle('hidden',!admin));
+  if(!admin&&location.hash==='#sprava')location.hash='#prehled';
+}
+async function renderPendingUsers(){
+  const target=$('#pendingUsers');if(!target||currentProfile?.role!=='admin')return;
+  try{
+    const snap=await getDocs(collection(db,'users'));
+    const pending=snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>!u.approved&&u.role!=='admin');
+    target.innerHTML=pending.length?pending.map(u=>`<div class="pending-user"><div><strong>${escapeHtml(u.name||'Bez jména')}</strong><span>${escapeHtml(u.email||'')}</span></div><button class="primary" onclick="approveUser('${u.id}')">Schválit</button></div>`).join(''):'<div class="muted">Žádná registrace nečeká na schválení.</div>';
+  }catch{target.innerHTML='<div class="login-error">Registrace se nepodařilo načíst.</div>'}
+}
+window.approveUser=async uid=>{
+  if(currentProfile?.role!=='admin')return;
+  try{await updateDoc(doc(db,'users',uid),{approved:true,role:'technician',approvedAt:serverTimestamp(),approvedBy:auth.currentUser.uid});await renderPendingUsers();showToast('Uživatel byl schválen.')}catch(e){showToast(e.message)}
+};
+async function startCloud(){if(unsubscribeState)unsubscribeState();const snap=await getDoc(stateRef);if(!snap.exists())await setDoc(stateRef,{vehicles:seed.vehicles,reservations:[],issues:[],history:[],updatedAt:serverTimestamp(),updatedBy:auth.currentUser.email});unsubscribeState=onSnapshot(stateRef,s=>{if(!s.exists())return;const x=s.data();data={vehicles:x.vehicles||[],reservations:x.reservations||[],issues:x.issues||[],history:x.history||[]};cloudReady=true;renderAll();openVehicleFromQr()},()=>showToast('Nepodařilo se načíst společná data.'))}
+onAuthStateChanged(auth,async user=>{
+  if(!user){
+    $('#loginScreen').classList.remove('hidden');cloudReady=false;currentProfile=null;applyRoleUi();
+    if(unsubscribeState){unsubscribeState();unsubscribeState=null}return;
+  }
+  try{
+    currentProfile=await ensureProfile(user);
+    const isAdmin=currentProfile.role==='admin'&&currentProfile.approved;
+    if(!isAdmin&&!user.emailVerified){setAuthMessage('Nejdříve potvrďte e-mail pomocí odkazu, který jsme vám poslali.');await signOut(auth);return}
+    if(!currentProfile.approved){setAuthMessage('E-mail je potvrzený. Registrace nyní čeká na schválení správcem.');await signOut(auth);return}
+    $('#loginScreen').classList.add('hidden');
+    $('#userName').textContent=currentProfile.name||user.displayName||user.email;
+    applyRoleUi();await startCloud();
+  }catch(e){setAuthMessage('Přihlášení se nepodařilo dokončit: '+e.message);await signOut(auth)}
+});
 $('#todayText').textContent=new Intl.DateTimeFormat('cs-CZ',{dateStyle:'full'}).format(new Date());
 renderAll();
 if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
