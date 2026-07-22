@@ -6,9 +6,15 @@ service firebase.storage {
         && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
         && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.approved == true;
     }
+    function vehicleEditor() {
+      return approved() && (
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin'
+        || firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.canEditVehicles == true
+      );
+    }
     match /vehicles/{vehicleId}/{allPaths=**} {
       allow read: if approved();
-      allow write: if approved() && request.resource.size < 10 * 1024 * 1024;
+      allow write: if vehicleEditor() && request.resource.size < 10 * 1024 * 1024;
     }
   }
 }

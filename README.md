@@ -1,9 +1,5 @@
-# SZZ Vozový park 2.2
+# SZZ Vozový park 2.3
 
-Opravené načítání nové verze na GitHub Pages:
-- registrace uživatelů
-- potvrzení e-mailu
-- schválení správcem
-- aktualizovaný service worker bez držení staré přihlašovací obrazovky
+Nově může údaje o vozidlech měnit pouze správce nebo uživatel, kterému správce zapne oprávnění v části **Správa → Oprávnění k úpravě vozidel**.
 
-Nahrajte všechny soubory do kořene repozitáře a nahraďte původní soubory.
+Po nahrání souborů publikujte také aktualizovaná pravidla `firestore.rules` a `storage.rules`.

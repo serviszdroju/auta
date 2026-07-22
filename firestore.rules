@@ -25,7 +25,8 @@ service cloud.firestore {
         && request.resource.data.role == 'pending'));
       allow update: if admin() || (signedIn() && request.auth.uid == userId
         && request.resource.data.approved == resource.data.approved
-        && request.resource.data.role == resource.data.role);
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.canEditVehicles == resource.data.canEditVehicles);
       allow delete: if admin();
     }
 

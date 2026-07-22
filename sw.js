@@ -1,7 +1,7 @@
-const CACHE = "szz-fleet-v2.2";
+const CACHE = "szz-fleet-v2.3";
 const FILES = [
-  "./styles.css?v=2.2",
-  "./app.js?v=2.2",
+  "./styles.css?v=2.3",
+  "./app.js?v=2.3",
   "./SZZ_logo.png",
   "./manifest.webmanifest"
 ];
